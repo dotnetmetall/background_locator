@@ -1,9 +1,10 @@
 package rekab.app.background_locator
 
 import android.content.Context
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import rekab.app.background_locator.provider.LocationClient
+
 
 class PreferencesManager {
     companion object {
@@ -185,7 +186,8 @@ class PreferencesManager {
                         .apply()
                 return
             }
-            val dataStr = Gson().toJson(data)
+
+            val dataStr = jacksonObjectMapper().writeValueAsString(data)
             context.getSharedPreferences(Keys.SHARED_PREFERENCES_KEY, Context.MODE_PRIVATE)
                     .edit()
                     .putString(key, dataStr)
@@ -201,10 +203,12 @@ class PreferencesManager {
 
         @JvmStatic
         fun getDataCallback(context: Context, key: String): Map<*, *> {
+
             val initialDataStr = context.getSharedPreferences(Keys.SHARED_PREFERENCES_KEY, Context.MODE_PRIVATE)
-                    .getString(key, null)
-            val type = object : TypeToken<Map<*, *>>() {}.type
-            return Gson().fromJson(initialDataStr, type)
+                .getString(key, null) ?: return emptyMap<String, String>();
+
+            val mapFromJson: Map<*, *> = jacksonObjectMapper().readValue(initialDataStr)
+            return  mapFromJson
         }
     }
 }
